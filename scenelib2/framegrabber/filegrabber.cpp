@@ -39,73 +39,73 @@ namespace SceneLib2 {
 
 FileGrabber::FileGrabber()
 {
-  initialised_ = false;
-  frame_id_ = 0;
+    initialised_ = false;
+    frame_id_ = 0;
 }
 
 FileGrabber::~FileGrabber()
 {
-  if(!files_vec_.empty()) {
-    files_vec_.clear();
-  }
+    if(!files_vec_.empty()) {
+        files_vec_.clear();
+    }
 }
 
 void FileGrabber::Init(const string &path, FrameGrabber *frame_grabber)
 {
-  ProcessFiles(path);
+    ProcessFiles(path);
 
-  frame_grabber_  = frame_grabber;
-  initialised_    = true;
+    frame_grabber_  = frame_grabber;
+    initialised_    = true;
 
-  fg_thread_ = boost::thread(boost::ref(*this));
+    fg_thread_ = boost::thread(boost::ref(*this));
 }
 
 void FileGrabber::ProcessFiles(const boost::filesystem::path &directory)
 {
-  if (exists(directory)) {
-    boost::filesystem::directory_iterator end;
+    if (exists(directory)) {
+        boost::filesystem::directory_iterator end;
 
-    for (boost::filesystem::directory_iterator iter(directory); iter!=end; ++iter) {
-      if (is_directory(*iter)) {
-        ProcessFiles(*iter);
-      } else {
-        string  path_name = iter->path().string();
+        for (boost::filesystem::directory_iterator iter(directory); iter!=end; ++iter) {
+            if (is_directory(*iter)) {
+            ProcessFiles(*iter);
+            } else {
+            string  path_name = iter->path().string();
 
-        files_vec_.push_back(path_name);
-      }
+            files_vec_.push_back(path_name);
+            }
+        }
+
+        sort(files_vec_.begin(), files_vec_.end());
     }
-
-    sort(files_vec_.begin(), files_vec_.end());
-  }
-  else {
-    throw std::runtime_error("provided directory doesn't exist!");
-  }
+    else {
+        throw std::runtime_error("provided directory doesn't exist!");
+    }
 }
 
 void FileGrabber::operator ()()
 {
-  while (initialised_) {
-    if (frame_grabber_->IsFrameBufferFull()==false) {
-      if (files_vec_.size() > (unsigned int)frame_id_) {
-        Frame frame;
-        string  file_full_path = files_vec_.at(frame_id_);
+    while (initialised_) {
+        if (frame_grabber_->IsFrameBufferFull()==false) {
+            if (files_vec_.size() > (unsigned int)frame_id_) {
+            Frame frame;
+            string  file_full_path = files_vec_.at(frame_id_);
 
-        frame.frame_id = frame_id_;
-        frame.data = GetImageFile(file_full_path);
-        ++frame_id_;
+            frame.frame_id = frame_id_;
+            frame.data = GetImageFile(file_full_path);
+            ++frame_id_;
 
-        frame_grabber_->SetFrame(frame);
-      }
+            frame_grabber_->SetFrame(frame);
+            }
+        }
+        else {
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+        }
     }
-    else {
-      boost::this_thread::sleep(boost::posix_time::milliseconds(1));
-    }
-  }
 }
 
 cv::Mat FileGrabber::GetImageFile(const string &file_full_path)
 {
-  return  cv::imread(file_full_path, 0);
+    return  cv::imread(file_full_path, 0);
 }
 
 } // namespace SceneLib2

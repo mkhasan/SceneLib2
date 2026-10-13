@@ -49,73 +49,73 @@ Kalman::~Kalman()
 
 void Kalman::KalmanFilterPredict(MonoSLAM *monoslam, Eigen::Vector3d &u)
 {
-  // Make model calculations: results are stored in RES matrices
-  monoslam->motion_model_->func_fv_and_dfv_by_dxv(monoslam->xv_, u,
-                                                  monoslam->kDeltaT_);
-  monoslam->motion_model_->func_Q(monoslam->xv_, u, monoslam->kDeltaT_);
+    // Make model calculations: results are stored in RES matrices
+    monoslam->motion_model_->func_fv_and_dfv_by_dxv(monoslam->xv_, u,
+                                                    monoslam->kDeltaT_);
+    monoslam->motion_model_->func_Q(monoslam->xv_, u, monoslam->kDeltaT_);
 
-  monoslam->xv_ = monoslam->motion_model_->fvRES_;
+    monoslam->xv_ = monoslam->motion_model_->fvRES_;
 
-  monoslam->Pxx_ = monoslam->motion_model_->dfv_by_dxvRES_ *
-                   monoslam->Pxx_ *
-                   monoslam->motion_model_->dfv_by_dxvRES_.transpose() +
-                   monoslam->motion_model_->QxRES_;
+    monoslam->Pxx_ = monoslam->motion_model_->dfv_by_dxvRES_ *
+                    monoslam->Pxx_ *
+                    monoslam->motion_model_->dfv_by_dxvRES_.transpose() +
+                    monoslam->motion_model_->QxRES_;
 
-  // Change the covariances between vehicle state and feature states
-  for (vector<Feature *>::iterator it = monoslam->feature_list_.begin();
-       it != monoslam->feature_list_.end(); ++it) {
-    (*it)->Pxy_ = monoslam->motion_model_->dfv_by_dxvRES_ * (*it)->Pxy_;
-  }
+    // Change the covariances between vehicle state and feature states
+    for (vector<Feature *>::iterator it = monoslam->feature_list_.begin();
+        it != monoslam->feature_list_.end(); ++it) {
+        (*it)->Pxy_ = monoslam->motion_model_->dfv_by_dxvRES_ * (*it)->Pxy_;
+    }
 }
 
 // Update the filter in a simple overall way
 void Kalman::KalmanFilterUpdate(MonoSLAM *monoslam)
 {
-  // Steps to update the total filter:
-  //   1. Form h and dh_by_dx and R(k+1) and z
-  //   2. Calculate S(k+1)
-  //   3. Calculate W(k+1)
-  //   4. Calculate x(k+1|k+1)
-  //   5. Calculate P(k+1|k+1)
-  int size = monoslam->successful_measurement_vector_size_;
-  int size2 = monoslam->total_state_size_;
+    // Steps to update the total filter:
+    //   1. Form h and dh_by_dx and R(k+1) and z
+    //   2. Calculate S(k+1)
+    //   3. Calculate W(k+1)
+    //   4. Calculate x(k+1|k+1)
+    //   5. Calculate P(k+1|k+1)
+    int size = monoslam->successful_measurement_vector_size_;
+    int size2 = monoslam->total_state_size_;
 
-  Eigen::VectorXd x(size2);
-  Eigen::MatrixXd P(size2, size2);
+    Eigen::VectorXd x(size2);
+    Eigen::MatrixXd P(size2, size2);
 
-  x.setZero();
-  monoslam->construct_total_state(x);
+    x.setZero();
+    monoslam->construct_total_state(x);
 
-  P.setZero();
-  monoslam->construct_total_covariance(P);
+    P.setZero();
+    monoslam->construct_total_covariance(P);
 
-  // 1. Form nu and dh_by_dx
-  Eigen::VectorXd nu_tot(size);
-  Eigen::MatrixXd dh_by_dx_tot(size, size2);
-  Eigen::MatrixXd R_tot(size, size);
+    // 1. Form nu and dh_by_dx
+    Eigen::VectorXd nu_tot(size);
+    Eigen::MatrixXd dh_by_dx_tot(size, size2);
+    Eigen::MatrixXd R_tot(size, size);
 
-  monoslam->construct_total_measurement_stuff(nu_tot, dh_by_dx_tot, R_tot);
+    monoslam->construct_total_measurement_stuff(nu_tot, dh_by_dx_tot, R_tot);
 
-  // 2. Calculate S(k+1)
-  Eigen::MatrixXd S = dh_by_dx_tot * P * dh_by_dx_tot.transpose();
-  S += R_tot;
+    // 2. Calculate S(k+1)
+    Eigen::MatrixXd S = dh_by_dx_tot * P * dh_by_dx_tot.transpose();
+    S += R_tot;
 
-  // 3. Calculate W(k+1)
-  Eigen::LLT<Eigen::MatrixXd>  S_cholesky(S);
-  Eigen::MatrixXd S_L = S_cholesky.matrixL();
-  Eigen::MatrixXd S_Linv = S_L.inverse();
-  Eigen::MatrixXd Sinv = S_Linv.transpose() * S_Linv;
+    // 3. Calculate W(k+1)
+    Eigen::LLT<Eigen::MatrixXd>  S_cholesky(S);
+    Eigen::MatrixXd S_L = S_cholesky.matrixL();
+    Eigen::MatrixXd S_Linv = S_L.inverse();
+    Eigen::MatrixXd Sinv = S_Linv.transpose() * S_Linv;
 
-  Eigen::MatrixXd W = P * dh_by_dx_tot.transpose() * Sinv;
+    Eigen::MatrixXd W = P * dh_by_dx_tot.transpose() * Sinv;
 
-  // 4. Calculate x(k+1|k+1)
-  x += W * nu_tot;
+    // 4. Calculate x(k+1|k+1)
+    x += W * nu_tot;
 
-  // 5. Calculate P(k+1|k+1)
-  P -= W * S * W.transpose();
+    // 5. Calculate P(k+1|k+1)
+    P -= W * S * W.transpose();
 
-  monoslam->fill_states(x);
-  monoslam->fill_covariances(P);
+    monoslam->fill_states(x);
+    monoslam->fill_covariances(P);
 }
 
 } // namespace SceneLib2

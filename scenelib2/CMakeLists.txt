@@ -1,10 +1,12 @@
+
 ############################################################
 ## Required Dependencies
 FIND_PACKAGE(Boost COMPONENTS thread filesystem system REQUIRED QUIET)
-FIND_PACKAGE(Eigen3 REQUIRED)
+find_package(Eigen3 REQUIRED)
 FIND_PACKAGE(GLUT REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED)
-FIND_PACKAGE(Pangolin REQUIRED)
+find_package(Pangolin REQUIRED)
+
 
 # Apply required dependencies settings
 LIST(APPEND USER_INC "${Boost_INCLUDE_DIRS};${Pangolin_INCLUDE_DIRS};${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR};${EIGEN3_INCLUDE_DIR};${OpenCV_INCLUDE_DIRS}")
@@ -16,10 +18,13 @@ LIST(APPEND LINK_LIBS "${Boost_LIBRARIES};${GLUT_LIBRARIES};${Pangolin_LIBRARIES
 INCLUDE_DIRECTORIES(${INTERNAL_INC})
 INCLUDE_DIRECTORIES(${USER_INC})
 LINK_DIRECTORIES(${LIB_DIRS})
-LINK_LIBRARIES(${LINK_LIBS})
+LINK_LIBRARIES(${LINK_LIBS} OpenGL::GLU)
+
+
 
 ############################################################
 ## SceneLib2 Library Sources
+
 SET(SOURCES monoslam.h monoslam.cpp
             motion_model.h motion_model.cpp
             feature.h feature.cpp feature_init_info.h feature_init_info.cpp
