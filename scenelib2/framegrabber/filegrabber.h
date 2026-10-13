@@ -48,23 +48,23 @@ namespace SceneLib2 {
 using namespace std;
 
 class FileGrabber {
- public:
-  FileGrabber();
-  ~FileGrabber();
+    public:
+    FileGrabber();
+    ~FileGrabber();
 
-  void Init(const string &path, FrameGrabber *frame_grabber);
-  void operator()();
+    void Init(const string &path, FrameGrabber *frame_grabber);
+    void operator()();
 
- private:
-  void ProcessFiles(const boost::filesystem::path &directory);
-  cv::Mat GetImageFile(const string &file_full_path);
+    private:
+    void ProcessFiles(const boost::filesystem::path &directory);
+    cv::Mat GetImageFile(const string &file_full_path);
 
-  vector<string>  files_vec_;
-  boost::thread   fg_thread_;
+    vector<string>  files_vec_;
+    boost::thread   fg_thread_;
 
-  bool            initialised_;
-  int             frame_id_;
-  FrameGrabber    *frame_grabber_;
+    bool            initialised_;
+    int             frame_id_;
+    FrameGrabber    *frame_grabber_;
 };
 
 } // namespace SceneLib2

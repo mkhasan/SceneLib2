@@ -41,66 +41,66 @@ namespace SceneLib2 {
 
 FrameGrabber::FrameGrabber()
 {
-  file_grabber_ = NULL;
-  usb_cam_grabber_ = NULL;
+    file_grabber_ = NULL;
+    usb_cam_grabber_ = NULL;
 }
 
 FrameGrabber::~FrameGrabber()
 {
-  if (file_grabber_ != NULL)
-    delete  file_grabber_;
+    if (file_grabber_ != NULL)
+        delete  file_grabber_;
 
-  if (usb_cam_grabber_ != NULL)
-    delete  usb_cam_grabber_;
+    if (usb_cam_grabber_ != NULL)
+        delete  usb_cam_grabber_;
 
-  while (!frame_buffer_.empty()) {
-    frame_buffer_.pop();
-  }
+    while (!frame_buffer_.empty()) {
+        frame_buffer_.pop();
+    }
 }
 
 void FrameGrabber::Init(const string &dev, const bool mode)
 {
-  if (!mode) {
-    file_grabber_ = new FileGrabber;
-    file_grabber_->Init(dev, this);
-  }
-  else {
-    usb_cam_grabber_ = new UsbCamGrabber;
-    usb_cam_grabber_->Init(dev, this);
-  }
+    if (!mode) {
+        file_grabber_ = new FileGrabber;
+        file_grabber_->Init(dev, this);
+    }
+    else {
+        usb_cam_grabber_ = new UsbCamGrabber;
+        usb_cam_grabber_->Init(dev, this);
+    }
 }
 
 bool FrameGrabber::GetFrame(int frame_id, Frame *frame)
 {
-  boost::mutex::scoped_lock lock(fg_mutex_);
+    boost::mutex::scoped_lock lock(fg_mutex_);
 
-  if (frame_buffer_.size() < 1) {
-    return  false;
-  }
+    if (frame_buffer_.size() < 1) {
+        return  false;
+    }
 
-  *frame = frame_buffer_.front();
-//  assert(frame->frame_id == frame_id);
-  frame_buffer_.pop();
+    *frame = frame_buffer_.front();
+    //  assert(frame->frame_id == frame_id);
+    frame_buffer_.pop();
 
-  return  true;
+    return  true;
 }
 
 void FrameGrabber::SetFrame(const Frame &frame)
 {
-  boost::mutex::scoped_lock lock(fg_mutex_);
+    boost::mutex::scoped_lock lock(fg_mutex_);
 
-  frame_buffer_.push(frame);
+    frame_buffer_.push(frame);
 }
 
 bool FrameGrabber::IsFrameBufferFull()
 {
-  boost::mutex::scoped_lock lock(fg_mutex_);
+    boost::mutex::scoped_lock lock(fg_mutex_);
 
-  if (frame_buffer_.size() < 50) {
-    return  false;
-  }
+    if (frame_buffer_.size() < 50) {
+        return  false;
+    }
 
-  return  true;
+    return  true;
 }
 
 } // namespace SceneLib2

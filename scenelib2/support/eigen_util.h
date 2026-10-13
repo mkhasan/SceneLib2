@@ -40,8 +40,8 @@
 
 namespace SceneLib2 {
 
-  void VectorUpdate(Eigen::VectorXd &dst, const Eigen::VectorXd &src, const int pos);
-  Eigen::VectorXd VectorExtract(const Eigen::VectorXd &src, const int pos, const int size);
+    void VectorUpdate(Eigen::VectorXd &dst, const Eigen::VectorXd &src, const int pos);
+    Eigen::VectorXd VectorExtract(const Eigen::VectorXd &src, const int pos, const int size);
 
 } // namespace SceneLib2
 

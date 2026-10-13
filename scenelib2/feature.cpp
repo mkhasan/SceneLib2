@@ -46,61 +46,61 @@ Feature::Feature(cv::Mat patch,
                  const Eigen::VectorXd &h,
                  MonoSLAM *monoslam)
 {
-  // Need to get FeatureModel before calling Initialise()
-  fully_initialised_flag_ = false;
-  feature_model_ = (PartFeatureModel *)monoslam->part_feature_model_;
+    // Need to get FeatureModel before calling Initialise()
+    fully_initialised_flag_ = false;
+    feature_model_ = (PartFeatureModel *)monoslam->part_feature_model_;
 
-  Initialise();
+    Initialise();
 
-  patch_ = patch;
+    patch_ = patch;
 
-  label_ = monoslam->next_free_label_;
-  position_in_list_ = monoslam->feature_list_.size();
-  position_in_total_state_vector_ = monoslam->total_state_size_;
+    label_ = monoslam->next_free_label_;
+    position_in_list_ = monoslam->feature_list_.size();
+    position_in_total_state_vector_ = monoslam->total_state_size_;
 
-  // Save the vehicle position where this feature was acquired
-  monoslam->motion_model_->func_xp(monoslam->xv_);
+    // Save the vehicle position where this feature was acquired
+    monoslam->motion_model_->func_xp(monoslam->xv_);
 
-  xp_org_.resize(monoslam->motion_model_->xpRES_.size());
-  xp_org_ = monoslam->motion_model_->xpRES_;
+    xp_org_.resize(monoslam->motion_model_->xpRES_.size());
+    xp_org_ = monoslam->motion_model_->xpRES_;
 
-  // Call model functions to calculate feature state, measurement noise
-  // and associated Jacobians. Results are stored in RES matrices
+    // Call model functions to calculate feature state, measurement noise
+    // and associated Jacobians. Results are stored in RES matrices
 
-  // First calculate "position state" and Jacobian
-  monoslam->motion_model_->func_xp(monoslam->xv_);
-  monoslam->motion_model_->func_dxp_by_dxv(monoslam->xv_);
+    // First calculate "position state" and Jacobian
+    monoslam->motion_model_->func_xp(monoslam->xv_);
+    monoslam->motion_model_->func_dxp_by_dxv(monoslam->xv_);
 
-  // Now ask the model to initialise the state vector and calculate Jacobians
-  // so that I can go and calculate the covariance matrices
-  monoslam->part_feature_model_->func_ypi_and_dypi_by_dxp_and_dypi_by_dhi_and_Ri(h, monoslam->motion_model_->xpRES_);
+    // Now ask the model to initialise the state vector and calculate Jacobians
+    // so that I can go and calculate the covariance matrices
+    monoslam->part_feature_model_->func_ypi_and_dypi_by_dxp_and_dypi_by_dhi_and_Ri(h, monoslam->motion_model_->xpRES_);
 
-  // State y
-  y_.resize(monoslam->part_feature_model_->ypiRES_.size());
-  y_ = monoslam->part_feature_model_->ypiRES_;
+    // State y
+    y_.resize(monoslam->part_feature_model_->ypiRES_.size());
+    y_ = monoslam->part_feature_model_->ypiRES_;
 
-  // Temp_FS1 will store dypi_by_dxv
-  Eigen::MatrixXd Temp_FS1 = monoslam->part_feature_model_->dypi_by_dxpRES_ * monoslam->motion_model_->dxp_by_dxvRES_;
+    // Temp_FS1 will store dypi_by_dxv
+    Eigen::MatrixXd Temp_FS1 = monoslam->part_feature_model_->dypi_by_dxpRES_ * monoslam->motion_model_->dxp_by_dxvRES_;
 
-  // Pxy
-  Pxy_ = monoslam->Pxx_ * Temp_FS1.transpose();
+    // Pxy
+    Pxy_ = monoslam->Pxx_ * Temp_FS1.transpose();
 
-  // Pyy
-  Pyy_ = Temp_FS1 * monoslam->Pxx_ * Temp_FS1.transpose() +
-         monoslam->part_feature_model_->dypi_by_dhiRES_ *
-         monoslam->part_feature_model_->RiRES_ *
-         monoslam->part_feature_model_->dypi_by_dhiRES_.transpose();
+    // Pyy
+    Pyy_ = Temp_FS1 * monoslam->Pxx_ * Temp_FS1.transpose() +
+            monoslam->part_feature_model_->dypi_by_dhiRES_ *
+            monoslam->part_feature_model_->RiRES_ *
+            monoslam->part_feature_model_->dypi_by_dhiRES_.transpose();
 
-  // Covariances of this feature with others
-  vector<Feature *>::iterator it = monoslam->feature_list_.begin();
+    // Covariances of this feature with others
+    vector<Feature *>::iterator it = monoslam->feature_list_.begin();
 
-  for (int j = 0; j < position_in_list_; ++j) {
-    Eigen::MatrixXd newPyjypi_to_store = (Temp_FS1 * (*it)->Pxy_).transpose();
+    for (int j = 0; j < position_in_list_; ++j) {
+        Eigen::MatrixXd newPyjypi_to_store = (Temp_FS1 * (*it)->Pxy_).transpose();
 
-    matrix_block_list_.push_back(newPyjypi_to_store);
+        matrix_block_list_.push_back(newPyjypi_to_store);
 
-    ++it;
-  }
+        ++it;
+    }
 }
 
 // Constructor for known features. The different number of
@@ -110,42 +110,42 @@ Feature::Feature(FeatureModel *feature_model,
                  const int label, const int total_state_size, const string &identifier,
                  vector<Feature *> feature_list)
 {
-  // Need to get FeatureModel before calling Initialise()
-  fully_initialised_flag_ = true;
-  feature_model_ = (FullFeatureModel *)feature_model;
+    // Need to get FeatureModel before calling Initialise()
+    fully_initialised_flag_ = true;
+    feature_model_ = (FullFeatureModel *)feature_model;
 
-  Initialise();
+    Initialise();
 
-  patch_ = cv::imread(identifier, 0);
+    patch_ = cv::imread(identifier, 0);
 
-  label_ = label;
-  position_in_list_ = feature_list.size();  // Position of new feature in list
-  position_in_total_state_vector_ = total_state_size;
+    label_ = label;
+    position_in_list_ = feature_list.size();  // Position of new feature in list
+    position_in_total_state_vector_ = total_state_size;
 
-  // Save the vehicle position where this feature was acquired
-  xp_org_.resize(xp.size());
-  xp_org_ = xp;
+    // Save the vehicle position where this feature was acquired
+    xp_org_.resize(xp.size());
+    xp_org_ = xp;
 
-  // Straighforward initialisation of state and covariances
-  y_.resize(y.size());
-  y_ = y;
-  Pxy_.resize(feature_model_->motion_model_->kStateSize_, feature_model_->kFeatureStateSize_);
-  Pxy_.setZero();
-  Pyy_.resize(feature_model_->kFeatureStateSize_, feature_model_->kFeatureStateSize_);
-  Pyy_.setZero();
+    // Straighforward initialisation of state and covariances
+    y_.resize(y.size());
+    y_ = y;
+    Pxy_.resize(feature_model_->motion_model_->kStateSize_, feature_model_->kFeatureStateSize_);
+    Pxy_.setZero();
+    Pyy_.resize(feature_model_->kFeatureStateSize_, feature_model_->kFeatureStateSize_);
+    Pyy_.setZero();
 
-  vector<Feature *>::iterator it = feature_list.begin();
+    vector<Feature *>::iterator it = feature_list.begin();
 
-  // Fill covariance cross-terms with zero
-  for (int i = 0; i < position_in_list_; ++i) {
-    Eigen::MatrixXd newPyjyi_to_store((*it)->feature_model_->kFeatureStateSize_,
-                                      feature_model_->kFeatureStateSize_);
-    newPyjyi_to_store.setZero();
+    // Fill covariance cross-terms with zero
+    for (int i = 0; i < position_in_list_; ++i) {
+        Eigen::MatrixXd newPyjyi_to_store((*it)->feature_model_->kFeatureStateSize_,
+                                        feature_model_->kFeatureStateSize_);
+        newPyjyi_to_store.setZero();
 
-    matrix_block_list_.push_back(newPyjyi_to_store);
+        matrix_block_list_.push_back(newPyjyi_to_store);
 
-    ++it;
-  }
+        ++it;
+    }
 }
 
 Feature::~Feature()
@@ -154,20 +154,20 @@ Feature::~Feature()
 
 void Feature::Initialise()
 {
-  selected_flag_ = false;        // Feature is unselected when first detected
-  scheduled_for_termination_flag_ = false;
-  attempted_measurements_of_feature_ = 0;
-  successful_measurements_of_feature_ = 0;
+    selected_flag_ = false;        // Feature is unselected when first detected
+    scheduled_for_termination_flag_ = false;
+    attempted_measurements_of_feature_ = 0;
+    successful_measurements_of_feature_ = 0;
 
-  // Allocate matrices for storing predicted and actual measurements
-  h_.resize(feature_model_->kMeasurementSize_);
-  z_.resize(feature_model_->kMeasurementSize_);
-  nu_.resize(feature_model_->kMeasurementSize_);
+    // Allocate matrices for storing predicted and actual measurements
+    h_.resize(feature_model_->kMeasurementSize_);
+    z_.resize(feature_model_->kMeasurementSize_);
+    nu_.resize(feature_model_->kMeasurementSize_);
 
-  dh_by_dxv_.resize(feature_model_->kMeasurementSize_, feature_model_->motion_model_->kStateSize_);
-  dh_by_dy_.resize(feature_model_->kMeasurementSize_, feature_model_->kFeatureStateSize_);
-  R_.resize(feature_model_->kMeasurementSize_, feature_model_->kMeasurementSize_);
-  S_.resize(feature_model_->kMeasurementSize_, feature_model_->kMeasurementSize_);
+    dh_by_dxv_.resize(feature_model_->kMeasurementSize_, feature_model_->motion_model_->kStateSize_);
+    dh_by_dy_.resize(feature_model_->kMeasurementSize_, feature_model_->kFeatureStateSize_);
+    R_.resize(feature_model_->kMeasurementSize_, feature_model_->kMeasurementSize_);
+    S_.resize(feature_model_->kMeasurementSize_, feature_model_->kMeasurementSize_);
 }
 
 // Convert a partially-initialised feature to a fully-initialised feature,
@@ -205,67 +205,67 @@ void Feature::convert_from_partially_to_fully_initialised(
     const Eigen::VectorXd &lambda, const Eigen::MatrixXd &Plambda,
     MonoSLAM *monoslam)
 {
-  // We'll do all the work here in feature.cc though probably this only
-  // works with scene_single...
+    // We'll do all the work here in feature.cc though probably this only
+    // works with scene_single...
 
-  // We calculate new state yfi(ypi, lambda)
-  // New feature covariance
-  // Pyfiyfi = dyfi_by_dypi Pypiypi dyfi_by_dypiT +
-  //           dyfi_by_dlambda Plambda dyfi_by_dlambdaT
-  // And we change cross covariances as follows:
-  // Pxyfi = Pxypi dyfi_by_dypiT
-  // Pyjyfi = Pyjypi dyfi_by_dypiT   for j < i (since we only store top-right
-  // Pyfiyj = dyfi_by_dypi Pypiyj    for j > i  part of covariance matrix)
-  monoslam->part_feature_model_->func_yfi_and_dyfi_by_dypi_and_dyfi_by_dlambda(y_, lambda);
+    // We calculate new state yfi(ypi, lambda)
+    // New feature covariance
+    // Pyfiyfi = dyfi_by_dypi Pypiypi dyfi_by_dypiT +
+    //           dyfi_by_dlambda Plambda dyfi_by_dlambdaT
+    // And we change cross covariances as follows:
+    // Pxyfi = Pxypi dyfi_by_dypiT
+    // Pyjyfi = Pyjypi dyfi_by_dypiT   for j < i (since we only store top-right
+    // Pyfiyj = dyfi_by_dypi Pypiyj    for j > i  part of covariance matrix)
+    monoslam->part_feature_model_->func_yfi_and_dyfi_by_dypi_and_dyfi_by_dlambda(y_, lambda);
 
-  Eigen::MatrixXd dyfi_by_dypiT = monoslam->part_feature_model_->dyfi_by_dypiRES_.transpose();
-  Eigen::MatrixXd dyfi_by_dlambdaT = monoslam->part_feature_model_->dyfi_by_dlambdaRES_.transpose();
+    Eigen::MatrixXd dyfi_by_dypiT = monoslam->part_feature_model_->dyfi_by_dypiRES_.transpose();
+    Eigen::MatrixXd dyfi_by_dlambdaT = monoslam->part_feature_model_->dyfi_by_dlambdaRES_.transpose();
 
-  // Replace y
-  y_ = monoslam->part_feature_model_->yfiRES_;
+    // Replace y
+    y_ = monoslam->part_feature_model_->yfiRES_;
 
-  // Replace Pxy
-  Pxy_ = Pxy_ * dyfi_by_dypiT;
+    // Replace Pxy
+    Pxy_ = Pxy_ * dyfi_by_dypiT;
 
-  // Replace Pyy
-  Eigen::MatrixXd Pypiypi_1 = monoslam->part_feature_model_->dyfi_by_dypiRES_ * Pyy_ * dyfi_by_dypiT;
-  Eigen::MatrixXd Pypiypi_2 = monoslam->part_feature_model_->dyfi_by_dlambdaRES_ * Plambda * dyfi_by_dlambdaT;
-  Pyy_ = Pypiypi_1 + Pypiypi_2;
+    // Replace Pyy
+    Eigen::MatrixXd Pypiypi_1 = monoslam->part_feature_model_->dyfi_by_dypiRES_ * Pyy_ * dyfi_by_dypiT;
+    Eigen::MatrixXd Pypiypi_2 = monoslam->part_feature_model_->dyfi_by_dlambdaRES_ * Plambda * dyfi_by_dlambdaT;
+    Pyy_ = Pypiypi_1 + Pypiypi_2;
 
-  // Pyjyi elements for j < i (covariance with features before i in list)
-  const int i = position_in_list_;
+    // Pyjyi elements for j < i (covariance with features before i in list)
+    const int i = position_in_list_;
 
-  for (vector<Eigen::MatrixXd>::iterator it = matrix_block_list_.begin();
-      it != matrix_block_list_.begin() + position_in_list_; ++it) {
-    *it = *it * dyfi_by_dypiT;
-  }
+    for (vector<Eigen::MatrixXd>::iterator it = matrix_block_list_.begin();
+        it != matrix_block_list_.begin() + position_in_list_; ++it) {
+        *it = *it * dyfi_by_dypiT;
+    }
 
-  // Pyjyi elements for j > i (covariance with features after i in list)
-  vector<Feature *>::iterator it = monoslam->feature_list_.begin();
+    // Pyjyi elements for j > i (covariance with features after i in list)
+    vector<Feature *>::iterator it = monoslam->feature_list_.begin();
 
-  // Start at the element after the current feature
-  while (*it != this)
-    ++it; // now pointing at current feature
+    // Start at the element after the current feature
+    while (*it != this)
+        ++it; // now pointing at current feature
 
-  ++it; // now pointing at the next one
+    ++it; // now pointing at the next one
 
-  for (; it != monoslam->feature_list_.end(); ++it) {
-    (*it)->matrix_block_list_[i] = monoslam->part_feature_model_->dyfi_by_dypiRES_ * (*it)->matrix_block_list_[i];
-    (*it)->position_in_total_state_vector_ -= feature_model_->kFeatureStateSize_;
-  }
+    for (; it != monoslam->feature_list_.end(); ++it) {
+        (*it)->matrix_block_list_[i] = monoslam->part_feature_model_->dyfi_by_dypiRES_ * (*it)->matrix_block_list_[i];
+        (*it)->position_in_total_state_vector_ -= feature_model_->kFeatureStateSize_;
+    }
 
-  // Change the total state size in scene, here with a negative increment
-  monoslam->total_state_size_ += (monoslam->full_feature_model_->kFeatureStateSize_ -
-                                  monoslam->part_feature_model_->kFeatureStateSize_);
+    // Change the total state size in scene, here with a negative increment
+    monoslam->total_state_size_ += (monoslam->full_feature_model_->kFeatureStateSize_ -
+                                    monoslam->part_feature_model_->kFeatureStateSize_);
 
-  // Change fmm for this model to fully-initialised one
-  feature_model_ = monoslam->full_feature_model_;
+    // Change fmm for this model to fully-initialised one
+    feature_model_ = monoslam->full_feature_model_;
 
-  // Need to reallocate any other matrices
-  // Assume that measurement size doesn't change
-  dh_by_dy_.resize(feature_model_->kMeasurementSize_, feature_model_->kFeatureStateSize_);
+    // Need to reallocate any other matrices
+    // Assume that measurement size doesn't change
+    dh_by_dy_.resize(feature_model_->kMeasurementSize_, feature_model_->kFeatureStateSize_);
 
-  fully_initialised_flag_ = true;
+    fully_initialised_flag_ = true;
 }
 
 } // namespace SceneLib2

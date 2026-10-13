@@ -55,22 +55,22 @@ class FileGrabber;
 class UsbCamGrabber;
 
 class FrameGrabber {
- public:
-  FrameGrabber();
-  ~FrameGrabber();
+    public:
+    FrameGrabber();
+    ~FrameGrabber();
 
-  void Init(const string &dev, const bool mode);
+    void Init(const string &dev, const bool mode);
 
-  bool GetFrame(int frame_id, Frame *frame);
-  void SetFrame(const Frame &frame);
-  bool IsFrameBufferFull();
+    bool GetFrame(int frame_id, Frame *frame);
+    void SetFrame(const Frame &frame);
+    bool IsFrameBufferFull();
 
- private:
-  queue<Frame>  frame_buffer_;
-  boost::mutex  fg_mutex_;
+    private:
+    queue<Frame>  frame_buffer_;
+    boost::mutex  fg_mutex_;
 
-  FileGrabber   *file_grabber_;
-  UsbCamGrabber *usb_cam_grabber_;
+    FileGrabber   *file_grabber_;
+    UsbCamGrabber *usb_cam_grabber_;
 };
 
 } // namespace SceneLib2

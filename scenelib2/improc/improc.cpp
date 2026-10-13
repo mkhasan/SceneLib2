@@ -59,78 +59,78 @@ double correlate2_warning(const int x0, const int y0,
                           const cv::Mat &p1,
                           double *sd0ptr, double *sd1ptr)
 {
-  unsigned char *p0_ptr, *p1_ptr;
+    unsigned char *p0_ptr, *p1_ptr;
 
-  // Make these int rather than unsigned int for speed
-  int patchwidth = x0lim - x0;
-  int p0skip = p0.size().width - patchwidth;
-  int p1skip = p1.size().width - patchwidth;
-  int Sg0 = 0, Sg1 = 0, Sg0g1 = 0, Sg0sq = 0, Sg1sq = 0;
+    // Make these int rather than unsigned int for speed
+    int patchwidth = x0lim - x0;
+    int p0skip = p0.size().width - patchwidth;
+    int p1skip = p1.size().width - patchwidth;
+    int Sg0 = 0, Sg1 = 0, Sg0g1 = 0, Sg0sq = 0, Sg1sq = 0;
 
-  double n = (x0lim - x0) * (y0lim - y0);     // to hold total no of pixels
+    double n = (x0lim - x0) * (y0lim - y0);     // to hold total no of pixels
 
-  double varg0 = 0.0, varg1 = 0.0, sigmag0 = 0.0, sigmag1 = 0.0, g0bar = 0.0,
-         g1bar = 0.0;
-  double Sg0doub = 0.0, Sg1doub = 0.0, Sg0g1doub = 0.0, Sg0sqdoub = 0.0,
-         Sg1sqdoub = 0.0;
+    double varg0 = 0.0, varg1 = 0.0, sigmag0 = 0.0, sigmag1 = 0.0, g0bar = 0.0,
+            g1bar = 0.0;
+    double Sg0doub = 0.0, Sg1doub = 0.0, Sg0g1doub = 0.0, Sg0sqdoub = 0.0,
+            Sg1sqdoub = 0.0;
 
-  double C = 0.0;                         // to hold the final result
-  double k = 0.0;                         // to hold an intermediate result
+    double C = 0.0;                         // to hold the final result
+    double k = 0.0;                         // to hold an intermediate result
 
-  // at the moment the far right and bottom pixels aren't included
-  p0_ptr = p0.data + p0.size().width * y0 + x0;
-  p1_ptr = p1.data + p1.size().width * y1 + x1;
+    // at the moment the far right and bottom pixels aren't included
+    p0_ptr = p0.data + p0.size().width * y0 + x0;
+    p1_ptr = p1.data + p1.size().width * y1 + x1;
 
-  for (int y0copy = y0lim - 1; y0copy >= 0 ; --y0copy) {
-    for (int x0copy = x0lim - 1; x0copy >=0 ; --x0copy) {
-      Sg0 += *p0_ptr;
-      Sg1 += *p1_ptr;
-      Sg0g1 += *p0_ptr * *p1_ptr;
-      Sg0sq += *p0_ptr * *p0_ptr;
-      Sg1sq += *p1_ptr * *p1_ptr;
+    for (int y0copy = y0lim - 1; y0copy >= 0 ; --y0copy) {
+        for (int x0copy = x0lim - 1; x0copy >=0 ; --x0copy) {
+        Sg0 += *p0_ptr;
+        Sg1 += *p1_ptr;
+        Sg0g1 += *p0_ptr * *p1_ptr;
+        Sg0sq += *p0_ptr * *p0_ptr;
+        Sg1sq += *p1_ptr * *p1_ptr;
 
-      ++p0_ptr;
-      ++p1_ptr;
+        ++p0_ptr;
+        ++p1_ptr;
+        }
+        p0_ptr += p0skip;
+        p1_ptr += p1skip;
     }
-    p0_ptr += p0skip;
-    p1_ptr += p1skip;
-  }
 
-  Sg0doub = Sg0;
-  Sg1doub = Sg1;
-  Sg0g1doub = Sg0g1;
-  Sg0sqdoub = Sg0sq;
-  Sg1sqdoub = Sg1sq;
+    Sg0doub = Sg0;
+    Sg1doub = Sg1;
+    Sg0g1doub = Sg0g1;
+    Sg0sqdoub = Sg0sq;
+    Sg1sqdoub = Sg1sq;
 
-  g0bar = Sg0doub / n;
-  g1bar = Sg1doub / n;
+    g0bar = Sg0doub / n;
+    g1bar = Sg1doub / n;
 
-  varg0   = Sg0sqdoub / n  -  (g0bar * g0bar);
-  varg1   = Sg1sqdoub / n  -  (g1bar * g1bar);
+    varg0   = Sg0sqdoub / n  -  (g0bar * g0bar);
+    varg1   = Sg1sqdoub / n  -  (g1bar * g1bar);
 
-  sigmag0 = sqrt(varg0);
-  sigmag1 = sqrt(varg1);
+    sigmag0 = sqrt(varg0);
+    sigmag1 = sqrt(varg1);
 
-  *sd0ptr = sigmag0;
-  *sd1ptr = sigmag1;
+    *sd0ptr = sigmag0;
+    *sd1ptr = sigmag1;
 
-  if (sigmag0 == 0.0) {   // special checks for this algorithm to avoid division by zero
+    if (sigmag0 == 0.0) {   // special checks for this algorithm to avoid division by zero
+        if (sigmag1 == 0.0)
+        return 0.0;
+        else
+        return 1.0;
+    }
+
     if (sigmag1 == 0.0)
-      return 0.0;
-    else
-      return 1.0;
-  }
+        return 1.0;
 
-  if (sigmag1 == 0.0)
-    return 1.0;
+    k = g0bar / sigmag0 - g1bar / sigmag1;
 
-  k = g0bar / sigmag0 - g1bar / sigmag1;
+    C = Sg0sqdoub / varg0 + Sg1sqdoub / varg1 + n * (k * k) -
+        Sg0g1doub * 2.0 / (sigmag0 * sigmag1) -
+        Sg0doub * 2.0 * k / sigmag0 + Sg1doub * 2.0 * k / sigmag1;
 
-  C = Sg0sqdoub / varg0 + Sg1sqdoub / varg1 + n * (k * k) -
-      Sg0g1doub * 2.0 / (sigmag0 * sigmag1) -
-      Sg0doub * 2.0 * k / sigmag0 + Sg1doub * 2.0 * k / sigmag1;
-
-  return C / n;   // returns mean square no of s.d. from mean of pixels
+    return C / n;   // returns mean square no of s.d. from mean of pixels
 }
 
 } // namespace SceneLib2

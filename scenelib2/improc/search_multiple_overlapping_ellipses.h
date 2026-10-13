@@ -56,78 +56,78 @@ const double NO_SIGMA = 3.0;
 const double LOW_SIGMA_PENALTY = 5.0;
 
 class SearchMultipleOverlappingEllipses {
- public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  // Constructor.
-  // @param image The image to search
-  // @param patch The image patch to search for
-  // @param BOXSIZE The size of the image patch to use
-  SearchMultipleOverlappingEllipses(const cv::Mat &image, cv::Mat &patch,
-                                    const int BOXSIZE) :
-    m_image_(&image),
-    m_patch_(&patch),
-    m_boxsize_(BOXSIZE) { }
-
-  virtual ~SearchMultipleOverlappingEllipses() {}
-
-  void add_ellipse(const Eigen::Matrix2d &PuInv, const Eigen::Vector2d &search_centre);
-
-  virtual void search();
-
-  // Structure to hold the data for a particular ellipse.
-  struct SearchDatum {
-    friend class SearchMultipleOverlappingEllipses;
-   public:
+    public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    SearchDatum(const Eigen::Matrix2d &PuInv,
-                const Eigen::Vector2d &search_centre);
+    // Constructor.
+    // @param image The image to search
+    // @param patch The image patch to search for
+    // @param BOXSIZE The size of the image patch to use
+    SearchMultipleOverlappingEllipses(const cv::Mat &image, cv::Mat &patch,
+                                        const int BOXSIZE) :
+        m_image_(&image),
+        m_patch_(&patch),
+        m_boxsize_(BOXSIZE) { }
 
-    int minx() {return int(search_centre_[0] + 0.5) - halfwidth_;}
-    int maxx() {return int(search_centre_[0] + 0.5) + halfwidth_;}
-    int miny() {return int(search_centre_[1] + 0.5) - halfwidth_;}
-    int maxy() {return int(search_centre_[1] + 0.5) + halfwidth_;}
+    virtual ~SearchMultipleOverlappingEllipses() {}
 
-    bool inside_fast(int u, int v);
-    bool inside(int u, int v);
-    bool inside_relative(int u, int v);
+    void add_ellipse(const Eigen::Matrix2d &PuInv, const Eigen::Vector2d &search_centre);
 
-    // The inverse covariance. Set in the constructor via add_ellipse()
-    Eigen::Matrix2d PuInv_;
-    // The search centre. Set in the constructor via add_ellipse()
-    Eigen::Vector2d search_centre_;
-    // Set to <code>true</code> after search() if a successful match was found
-    bool result_flag_;
-    // The x-location of the successful match, if found
-    int result_u_;
-    // The y-location of the successful match, if found
-    int result_v_;
-    // Half the width of the search ellipse. Used to quickly decide where to search
-    int halfwidth_;
-    // Half the height of the search ellipse. Used to quickly decide where to search
-    int halfheight_;
-  };
+    virtual void search();
 
-  // Typdef the SearchDatum container for convenience
-  typedef vector<SearchDatum, Eigen::aligned_allocator<SearchDatum> > SearchData;
+    // Structure to hold the data for a particular ellipse.
+    struct SearchDatum {
+        friend class SearchMultipleOverlappingEllipses;
+    public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  // How many ellipses are registered with the class?
-  int size() const {return m_searchdata_.size();}
-  // Iterator set to the start of the container of ellipse data
-  SearchData::const_iterator begin() const {return m_searchdata_.begin();}
-  // Iterator set to one past the end of the container of ellipse data
-  SearchData::const_iterator end() const {return m_searchdata_.end();}
+        SearchDatum(const Eigen::Matrix2d &PuInv,
+                    const Eigen::Vector2d &search_centre);
 
-  const cv::Mat* image() const {return m_image_;}
-  const cv::Mat* patch() const {return m_patch_;}
-  int boxsize() const {return m_boxsize_;}
-  SearchData& searchdata() {return m_searchdata_;}
+        int minx() {return int(search_centre_[0] + 0.5) - halfwidth_;}
+        int maxx() {return int(search_centre_[0] + 0.5) + halfwidth_;}
+        int miny() {return int(search_centre_[1] + 0.5) - halfwidth_;}
+        int maxy() {return int(search_centre_[1] + 0.5) + halfwidth_;}
 
-  const cv::Mat* m_image_;
-  const cv::Mat* m_patch_;
-  int m_boxsize_;
-  SearchData m_searchdata_;
+        bool inside_fast(int u, int v);
+        bool inside(int u, int v);
+        bool inside_relative(int u, int v);
+
+        // The inverse covariance. Set in the constructor via add_ellipse()
+        Eigen::Matrix2d PuInv_;
+        // The search centre. Set in the constructor via add_ellipse()
+        Eigen::Vector2d search_centre_;
+        // Set to <code>true</code> after search() if a successful match was found
+        bool result_flag_;
+        // The x-location of the successful match, if found
+        int result_u_;
+        // The y-location of the successful match, if found
+        int result_v_;
+        // Half the width of the search ellipse. Used to quickly decide where to search
+        int halfwidth_;
+        // Half the height of the search ellipse. Used to quickly decide where to search
+        int halfheight_;
+    };
+
+    // Typdef the SearchDatum container for convenience
+    typedef vector<SearchDatum, Eigen::aligned_allocator<SearchDatum> > SearchData;
+
+    // How many ellipses are registered with the class?
+    int size() const {return m_searchdata_.size();}
+    // Iterator set to the start of the container of ellipse data
+    SearchData::const_iterator begin() const {return m_searchdata_.begin();}
+    // Iterator set to one past the end of the container of ellipse data
+    SearchData::const_iterator end() const {return m_searchdata_.end();}
+
+    const cv::Mat* image() const {return m_image_;}
+    const cv::Mat* patch() const {return m_patch_;}
+    int boxsize() const {return m_boxsize_;}
+    SearchData& searchdata() {return m_searchdata_;}
+
+    const cv::Mat* m_image_;
+    const cv::Mat* m_patch_;
+    int m_boxsize_;
+    SearchData m_searchdata_;
 };
 
 } // namespace SceneLib2

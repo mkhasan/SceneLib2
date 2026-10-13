@@ -39,45 +39,45 @@ namespace SceneLib2 {
 
 void Handler3D::Mouse(pangolin::View& display, pangolin::MouseButton button, int x, int y, bool pressed, int button_state)
 {
-  pangolin::Handler3D::Mouse(display, button, x, y, pressed, button_state);
+	pangolin::Handler3D::Mouse(display, button, x, y, pressed, button_state);
 
-  if(pressed && (button_state == 1)) {
-    int picked;
+	if(pressed && (button_state == 1)) {
+		int picked;
 
-    display.ActivateScissorAndClear(*view_state_);
-    picked = monoslam_ptr_->graphic_tool_->Picker(x, y, true);
+		display.ActivateScissorAndClear(*view_state_);
+		picked = monoslam_ptr_->graphic_tool_->Picker(x, y, true);
 
-    if (picked != 0) {
-      monoslam_ptr_->toggle_feature_lab(picked-1);
-      monoslam_ptr_->mark_feature_by_lab(picked-1);
-    }
-  }
+		if (picked != 0) {
+		monoslam_ptr_->toggle_feature_lab(picked-1);
+		monoslam_ptr_->mark_feature_by_lab(picked-1);
+		}
+	}
 }
 
 void Handler2D::Mouse(pangolin::View& display, pangolin::MouseButton button, int x, int y, bool pressed, int button_state)
 {
-  if(pressed && (button_state == 1)) {
-    int picked;
+	if(pressed && (button_state == 1)) {
+		int picked;
 
-    double  scale_w = (double)monoslam_ptr_->camera_->width_ / (double)display.v.w;
-    double  scale_h = (double)monoslam_ptr_->camera_->height_ / (double)display.v.h;
+		double  scale_w = (double)monoslam_ptr_->camera_->width_ / (double)display.v.w;
+		double  scale_h = (double)monoslam_ptr_->camera_->height_ / (double)display.v.h;
 
-    int local_x = (int)((double)(x - display.v.l) * scale_w);
-    int local_y = (int)((double)((display.v.b + display.v.h) - y) * scale_h);
+		int local_x = (int)((double)(x - display.v.l) * scale_w);
+		int local_y = (int)((double)((display.v.b + display.v.h) - y) * scale_h);
 
-    display.ActivateScissorAndClear();
-    picked = monoslam_ptr_->graphic_tool_->Picker(x, y, false);
+		display.ActivateScissorAndClear();
+		picked = monoslam_ptr_->graphic_tool_->Picker(x, y, false);
 
-    if (picked != 0) {
-      monoslam_ptr_->toggle_feature_lab(picked-1);
-      monoslam_ptr_->mark_feature_by_lab(picked-1);
-    }
-    else {
-      monoslam_ptr_->uu_ = local_x;
-      monoslam_ptr_->vv_ = local_y;
-      monoslam_ptr_->location_selected_flag_ = true;
-    }
-  }
+		if (picked != 0) {
+		monoslam_ptr_->toggle_feature_lab(picked-1);
+		monoslam_ptr_->mark_feature_by_lab(picked-1);
+		}
+		else {
+		monoslam_ptr_->uu_ = local_x;
+		monoslam_ptr_->vv_ = local_y;
+		monoslam_ptr_->location_selected_flag_ = true;
+		}
+	}
 }
 
 } // namespace SceneLib2

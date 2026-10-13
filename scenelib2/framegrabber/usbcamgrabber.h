@@ -49,24 +49,24 @@ namespace SceneLib2 {
 using namespace std;
 
 class UsbCamGrabber {
- public:
-  UsbCamGrabber();
-  ~UsbCamGrabber();
+    public:
+    UsbCamGrabber();
+    ~UsbCamGrabber();
 
-  void Init(const string &uri, FrameGrabber *frame_grabber);
-  void operator()();
+    void Init(const string &uri, FrameGrabber *frame_grabber);
+    void operator()();
 
- private:
-  boost::thread ucg_thread_;
+    private:
+    boost::thread ucg_thread_;
 
-  bool  initialised_;
-  int frame_id_;
-  FrameGrabber  *frame_grabber_;
+    bool  initialised_;
+    int frame_id_;
+    FrameGrabber  *frame_grabber_;
 
-  pangolin::VideoInput  *video_;
-  pangolin::VideoPixelFormat  *video_format_;
-  int video_width_;
-  int video_height_;
+    pangolin::VideoInput  *video_;
+    pangolin::VideoPixelFormat  *video_format_;
+    int video_width_;
+    int video_height_;
 };
 
 } // namespace SceneLib2

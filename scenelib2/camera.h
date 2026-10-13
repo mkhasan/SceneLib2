@@ -41,40 +41,40 @@
 namespace SceneLib2 {
 
 class Camera {
- public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  Camera();
-  ~Camera();
+    Camera();
+    ~Camera();
 
-  void SetCameraParameters(const int camera_width, const int camera_height,
-                           const double fku, const double fkv,
-                           const double u0, const double v0,
-                           const double kd1, const int sd);
+    void SetCameraParameters(const int camera_width, const int camera_height,
+                            const double fku, const double fkv,
+                            const double u0, const double v0,
+                            const double kd1, const int sd);
 
-  Eigen::Vector2d Project(const Eigen::Vector3d &c);
-  Eigen::Vector3d Unproject(const Eigen::Vector2d& image);
-  Eigen::MatrixXd ProjectionJacobian();
-  Eigen::MatrixXd UnprojectionJacobian();
-  Eigen::Matrix2d MeasurementNoise(const Eigen::Vector2d& h);
+    Eigen::Vector2d Project(const Eigen::Vector3d &c);
+    Eigen::Vector3d Unproject(const Eigen::Vector2d& image);
+    Eigen::MatrixXd ProjectionJacobian();
+    Eigen::MatrixXd UnprojectionJacobian();
+    Eigen::Matrix2d MeasurementNoise(const Eigen::Vector2d& h);
 
-  int               width_;
-  int               height_;
-  double            kd1_;
-  double            fku_;
-  double            fkv_;
-  Eigen::Vector2d   centre_;
-  double            measurement_sd_;
-  Eigen::Matrix3d   c_;
-  Eigen::Matrix3d   c_inv_;
-  Eigen::Vector3d   last_camera_;
-  Eigen::Vector2d   last_image_centred_;
+    int               width_;
+    int               height_;
+    double            kd1_;
+    double            fku_;
+    double            fkv_;
+    Eigen::Vector2d   centre_;
+    double            measurement_sd_;
+    Eigen::Matrix3d   c_;
+    Eigen::Matrix3d   c_inv_;
+    Eigen::Vector3d   last_camera_;
+    Eigen::Vector2d   last_image_centred_;
 
-  double            xL_, xR_, yB_, yT_;
-  double            xW_, xM_, yH_, yM_;
+    double            xL_, xR_, yB_, yT_;
+    double            xW_, xM_, yH_, yM_;
 
-  const double      kNear_;
-  const double      kFar_;
+    const double      kNear_;
+    const double      kFar_;
 };
 
 } // namespace SceneLib2
